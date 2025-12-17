@@ -7,6 +7,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { VersioningType } from '@nestjs/common';
 import helmet from "@fastify/helmet";
+import multipart from "@fastify/multipart"
 
 
 async function bootstrap() {
@@ -17,7 +18,9 @@ async function bootstrap() {
       ajv: {
         customOptions:{
           coerceTypes: true,
-          removeAdditional: 'all'
+          removeAdditional: 'all',
+          useDefaults: true,
+          allErrors: true
         }
       }
     }),
@@ -34,6 +37,13 @@ async function bootstrap() {
 
    app.enableVersioning({
          type: VersioningType.URI
+   });
+
+   await app.register(multipart, {
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+        files: 10
+      }
    });
 
 

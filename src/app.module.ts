@@ -5,6 +5,7 @@ import { ConfigModule } from "@nestjs/config"
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { ParsersModule } from './parsers/parsers.module';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }),
@@ -22,6 +23,7 @@ import { AuthModule } from './auth/auth.module';
     connectTimeoutMS: 10000
   }),
   AuthModule,
+  ParsersModule,
 ],
   controllers: [AppController],
   providers: [AppService],
