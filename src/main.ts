@@ -6,7 +6,6 @@ import {
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { VersioningType } from '@nestjs/common';
-import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 
 
@@ -27,10 +26,7 @@ async function bootstrap() {
     }
   );
 
-  await app.register(cors,{
-    origin: true,
-    credentials: true
-  });
+  app.enableCors();
 
   await app.register(helmet, {
     contentSecurityPolicy: false
