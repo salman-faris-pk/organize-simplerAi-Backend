@@ -1,9 +1,9 @@
-import '../pdfjs-node-polyfill';
-import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common';
-import * as pdfjs from 'pdfjs-dist';
+import { Injectable } from '@nestjs/common';
 import { HttpService } from "@nestjs/axios"
+import { PdfNotParsedError, PdfSizeError } from './exceptions/exceptions';
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf';
 
-
+    
 
 @Injectable()
 export class PdfParserService {
@@ -27,7 +27,7 @@ export class PdfParserService {
 
 
         if (text.trim().length === 0) {
-            throw new UnprocessableEntityException('PDF does not contain extractable text (likely scanned)');
+            throw new PdfNotParsedError();
         };
 
 
@@ -47,18 +47,31 @@ export class PdfParserService {
              return processedText;
     };
 
+
+
   async loadPdfFromUrl(url:string){
+    const MAX_SIZE = 10 * 1024 * 1024;
+
     const response=await this.httpService.axiosRef({
         url,
         method:'GET',
-        responseType:"arraybuffer"
+        responseType:"arraybuffer",
+        timeout: 10_000
     });
- 
-    if (response.headers['content-length'] > 10 * 1024 * 1024) {
-      throw new BadRequestException('pdf size larger tah 10 mb ');
-    };
+  
+    const contentLength = Number(response.headers['content-length']);
 
-     return Buffer.from(response.data, 'binary')
+     if (!isNaN(contentLength) && contentLength > MAX_SIZE) {
+       throw new PdfSizeError(10);
+     };
+
+     const buffer= Buffer.from(response.data, 'binary')
+
+     if(buffer.length > MAX_SIZE){
+      throw new PdfSizeError(10);
+     };
+
+     return buffer;
 
   };
 

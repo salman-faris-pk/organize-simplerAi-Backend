@@ -1,10 +1,12 @@
 import type { MultipartFile } from '@fastify/multipart';
-import { BadRequestException, Body, Controller, HttpCode, Post, Req } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiSecurity, ApiTags, ApiUnauthorizedResponse, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, HttpCode, Post, Req, UnprocessableEntityException } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiResponse, ApiSecurity, ApiTags, ApiUnauthorizedResponse, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { PdfParserService } from './pdf-parser.service';
 import { PdfParserUploadResultDto, PdfParserUploadResultSchema } from './dto/pdf-parser-upload-result.schema';
-import type{ PdfParserRequestDto, PdfParserUrlResultDto } from './dto/pdf-parser-base.schema';
+import{ PdfParserRequestSchema, type PdfParserRequestDto, type PdfParserUrlResultDto } from './dto/pdf-parser-base.schema';
+import { PdfNotParsedError, PdfSizeError } from "./exceptions/exceptions"
+
 
 
 const uploadSchema={
@@ -18,8 +20,17 @@ const uploadSchema={
     }
 };
 
+
+@ApiResponse({
+  status: 413,
+  description: 'PDF file is larger than 10MB',
+})
+@ApiResponse({
+  status: 422,
+  description: 'PDF file could not be parsed',
+})
 @ApiUnauthorizedResponse({
-    description:"The API ket in request's header is missing or invalid",
+    description:"The API key in request's header is missing or invalid",
 })
 @ApiBadRequestResponse({
     description:"The request body or the uploaded file is invalid or missing"
@@ -51,7 +62,7 @@ export class PdfParserController {
     @HttpCode(200)
     async parsePdfFromUpload(@Req() req: FastifyRequest): Promise<PdfParserUploadResultDto> {
        
-        const file: MultipartFile | undefined = await req.file();
+       const file: MultipartFile | undefined = await req.file();
 
        if (!file) {
          throw new BadRequestException('File is required');
@@ -62,16 +73,23 @@ export class PdfParserController {
        }
 
        if (file.file.truncated) {
-         throw new BadRequestException('File too large (max 10MB)');
+         throw new PdfSizeError(10);
        }
 
-       const buffer = await file.toBuffer();
+        try {
+
+          const buffer = await file.toBuffer();
 
          const text=await this.pdfParserService.parsePdf(buffer);
+
          return {
           originalFileName: file.filename,
           content: text
          };
+
+         } catch (err) {
+         throw new UnprocessableEntityException(err.message);
+       }
     };
 
 
@@ -87,12 +105,15 @@ export class PdfParserController {
       schema: PdfParserUploadResultSchema,
       description:'The PDF was parsed and post-processed successfully. Its content is returned as text.',
     })
+    @ApiBody({
+     schema: PdfParserRequestSchema,
+    })
     @Post('url')
     @HttpCode(200)
     async parsePdfFromUrl(
       @Body() requestDto: PdfParserRequestDto, 
     ) : Promise<PdfParserUrlResultDto> {
-       
+        
       const file= await this.pdfParserService.loadPdfFromUrl(requestDto.url);
       const text=await this.pdfParserService.parsePdf(file);
 
@@ -100,8 +121,6 @@ export class PdfParserController {
         originalUrl: requestDto.url,
         content: text
       };
-
-
 
     };
 };
