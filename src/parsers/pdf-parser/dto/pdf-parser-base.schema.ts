@@ -10,6 +10,7 @@ export const PdfParserRequestSchema = Type.Object({
 export type PdfParserRequestDto = Static<typeof PdfParserRequestSchema>;
 
 
+
 export const PdfParserResultSchema = Type.Object({
   content: Type.String({
      description: 'Parsed and post-processed content of the PDF file'

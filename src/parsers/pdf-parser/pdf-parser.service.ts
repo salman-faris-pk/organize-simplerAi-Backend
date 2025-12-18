@@ -1,28 +1,42 @@
-import { Injectable } from '@nestjs/common';
-import Poppler from 'node-poppler';
-import { map } from 'rxjs';
+import '../pdfjs-node-polyfill';
+import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import * as pdfjs from 'pdfjs-dist';
+import { HttpService } from "@nestjs/axios"
+
+
 
 @Injectable()
 export class PdfParserService {
 
+    constructor(private httpService:HttpService){}
+
     async parsePdf(file:Buffer){
          
-        const poppler=new Poppler(process.env.POPPLER_BIN_PATH)
+        const loadingTask=pdfjs.getDocument({ data: new Uint8Array(file)});
+        const pdf=await loadingTask.promise;
 
-        const output= (await poppler.pdfToText(file, undefined, {
-            maintainLayout: true,
-            quiet: true,
-        })) as any
+        let text='';
 
-      if(output.length === 0){
-         throw new Error('pdf has no values contains')
-      };
+        for(let pageNo= 1; pageNo <= pdf.numPages; pageNo++){
+             const page=await pdf.getPage(pageNo);
+             const content= await page.getTextContent();
 
-      return this.postProcessText(output);
+             text+=content.items.map((item:any)=> item.str).join(' ') + '\n';
+
+        };
+
+
+        if (text.trim().length === 0) {
+            throw new UnprocessableEntityException('PDF does not contain extractable text (likely scanned)');
+        };
+
+
+       return this.postProcessText(text)
+
     };
 
 
-    private postProcessText(text:string){
+    private postProcessText(text:string):string{
         const processedText=text
              .split('\n')       //Split the text into lines
              .map((line) => line.trim())   //Remove spaces at start & end of each line
@@ -33,7 +47,19 @@ export class PdfParserService {
              return processedText;
     };
 
+  async loadPdfFromUrl(url:string){
+    const response=await this.httpService.axiosRef({
+        url,
+        method:'GET',
+        responseType:"arraybuffer"
+    });
+ 
+    if (response.headers['content-length'] > 10 * 1024 * 1024) {
+      throw new BadRequestException('pdf size larger tah 10 mb ');
+    };
 
+     return Buffer.from(response.data, 'binary')
 
+  };
 
 };
