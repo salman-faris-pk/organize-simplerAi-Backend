@@ -4,9 +4,16 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ParsersModule } from './parsers/parsers.module';
+import configuration from './config/configuration';
+import { OrganizedDataModule } from './organized-data/organized-data.module';
+
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }),
+  imports: [ConfigModule.forRoot({ 
+    isGlobal: true,
+    load:[configuration],
+    cache: true
+  }),
   ThrottlerModule.forRoot([
      {
       ttl: 30,  //seconds
@@ -22,6 +29,7 @@ import { ParsersModule } from './parsers/parsers.module';
   }),
   AuthModule,
   ParsersModule,
+  OrganizedDataModule
 ],
 })
 export class AppModule {}

@@ -5,7 +5,7 @@ import type { FastifyRequest } from 'fastify';
 import { PdfParserService } from './pdf-parser.service';
 import { PdfParserUploadResultDto, PdfParserUploadResultSchema } from './dto/pdf-parser-upload-result.schema';
 import{ PdfParserRequestSchema, type PdfParserRequestDto, type PdfParserUrlResultDto } from './dto/pdf-parser-base.schema';
-import { PdfNotParsedError, PdfSizeError } from "./exceptions/exceptions"
+import { PdfSizeError } from "./exceptions/exceptions"
 
 
 
