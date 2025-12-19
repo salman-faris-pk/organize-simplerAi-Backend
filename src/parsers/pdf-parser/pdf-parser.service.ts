@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from "@nestjs/axios"
 import { PdfNotParsedError, PdfSizeError } from './exceptions/exceptions';
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf';
+import * as pdfjs from 'pdfjs-dist/build/pdf';
 
     
 
