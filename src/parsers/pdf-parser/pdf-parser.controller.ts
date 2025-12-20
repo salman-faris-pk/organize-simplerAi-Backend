@@ -1,13 +1,13 @@
 import type { MultipartFile } from '@fastify/multipart';
-import { BadRequestException, Body, Controller, HttpCode, Post, Req, UnprocessableEntityException } from '@nestjs/common';
+import { BadRequestException, Controller, HttpCode, Post, Req, UnprocessableEntityException } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiResponse, ApiSecurity, ApiTags, ApiUnauthorizedResponse, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { PdfParserService } from './pdf-parser.service';
-import { PdfParserUploadResultDto, PdfParserUploadResultSchema } from './dto/pdf-parser-upload-result.schema';
-import{ PdfParserRequestSchema, type PdfParserRequestDto, type PdfParserUrlResultDto } from './dto/pdf-parser-base.schema';
+import { PdfParserUploadResultDto, PdfParserUploadResultSchema } from './schemas/pdf-parser-upload-result.schema';
+import{ PdfParserRequestDto, PdfParserRequestSchema, type PdfParserUrlResultDto } from './schemas/pdf-parser-base.schema';
 import { PdfSizeError } from "./exceptions/exceptions"
-
-
+import { UrlRouteSchema,UploadRouteSchema} from "../pdf-parser/schemas/pdf-parser.route-schema"
+import { RouteConfig } from '@nestjs/platform-fastify';
 
 const uploadSchema={
     type: 'object',
@@ -23,7 +23,7 @@ const uploadSchema={
 
 @ApiResponse({
   status: 413,
-  description: 'PDF file is larger than 10MB',
+  description: 'PDF file is larger than 5MB',
 })
 @ApiResponse({
   status: 422,
@@ -53,12 +53,15 @@ export class PdfParserController {
     @ApiOperation({
         summary:'Return text from uploaded PDF file',
         description: `This endpoint retrieves the content of an uploaded PDF file and returns it as a text.\n
-          The file must be a PDF parsable text context, with a maximum size of 10MB.
+          The file must be a PDF parsable text context, with a maximum size of 5MB.
          `,
     })
     @ApiConsumes('multipart/form-data')
     @ApiBody({ schema: uploadSchema, description:"PDF file to be parsed"})
     @Post('upload')
+    @RouteConfig({
+      schema: UploadRouteSchema,
+    })
     @HttpCode(200)
     async parsePdfFromUpload(@Req() req: FastifyRequest): Promise<PdfParserUploadResultDto> {
        
@@ -73,7 +76,7 @@ export class PdfParserController {
        }
 
        if (file.file.truncated) {
-         throw new PdfSizeError(10);
+         throw new PdfSizeError(5);
        }
 
         try {
@@ -109,16 +112,21 @@ export class PdfParserController {
      schema: PdfParserRequestSchema,
     })
     @Post('url')
+    @RouteConfig({
+      schema: UrlRouteSchema
+    })
     @HttpCode(200)
     async parsePdfFromUrl(
-      @Body() requestDto: PdfParserRequestDto, 
+      @Req() req:FastifyRequest<{Body: PdfParserRequestDto}>
     ) : Promise<PdfParserUrlResultDto> {
-        
-      const file= await this.pdfParserService.loadPdfFromUrl(requestDto.url);
+  
+      const { url } = req.body;
+
+      const file= await this.pdfParserService.loadPdfFromUrl(url);
       const text=await this.pdfParserService.parsePdf(file);
 
       return {
-        originalUrl: requestDto.url,
+        originalUrl: url,
         content: text
       };
 

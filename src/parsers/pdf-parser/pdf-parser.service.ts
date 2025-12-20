@@ -50,7 +50,7 @@ export class PdfParserService {
 
 
   async loadPdfFromUrl(url:string){
-    const MAX_SIZE = 10 * 1024 * 1024;
+    const MAX_SIZE = 5 * 1024 * 1024;
 
     const response=await this.httpService.axiosRef({
         url,
@@ -62,13 +62,13 @@ export class PdfParserService {
     const contentLength = Number(response.headers['content-length']);
 
      if (!isNaN(contentLength) && contentLength > MAX_SIZE) {
-       throw new PdfSizeError(10);
+       throw new PdfSizeError(5);
      };
 
      const buffer= Buffer.from(response.data, 'binary')
 
      if(buffer.length > MAX_SIZE){
-      throw new PdfSizeError(10);
+      throw new PdfSizeError(5);
      };
 
      return buffer;

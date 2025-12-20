@@ -8,7 +8,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { VersioningType } from '@nestjs/common';
 import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart"
-
+import compress from "@fastify/compress"
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -21,7 +21,10 @@ async function bootstrap() {
           removeAdditional: 'all',
           useDefaults: true,
           allErrors: true
-        }
+        },
+        plugins: [
+          require('ajv-formats')
+        ]
       }
     }),
     {
@@ -41,9 +44,12 @@ async function bootstrap() {
 
    await app.register(multipart, {
       limits: {
-        fileSize: 10 * 1024 * 1024,
-        files: 10
+        fileSize: 5 * 1024 * 1024,
       }
+   });
+
+   await app.register(compress, {
+     encodings: ['gzip', 'deflate', 'br'],
    });
 
 

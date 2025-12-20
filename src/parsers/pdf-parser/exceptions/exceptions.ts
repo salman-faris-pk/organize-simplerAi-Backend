@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class PdfSizeError extends HttpException {
-  constructor(maxSizeMB = 10) {
+  constructor(maxSizeMB = 5) {
     super(
       {
         message: `The PDF file is larger than ${maxSizeMB}MB`,
