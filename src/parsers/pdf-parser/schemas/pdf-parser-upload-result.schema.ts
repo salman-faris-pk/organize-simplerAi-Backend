@@ -11,4 +11,5 @@ export const PdfParserUploadResultSchema = Type.Intersect([
   }),
 ]);
 
+//for response promise
 export type PdfParserUploadResultDto = Static<typeof PdfParserUploadResultSchema>;

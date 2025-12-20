@@ -30,4 +30,5 @@ export const PdfParserUrlResultSchema = Type.Intersect([
 ]);
 
 
+//for response promise
 export type PdfParserUrlResultDto = Static<typeof PdfParserUrlResultSchema>;

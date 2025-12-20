@@ -4,7 +4,7 @@ import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiOkResponse, ApiOperatio
 import type { FastifyRequest } from 'fastify';
 import { PdfParserService } from './pdf-parser.service';
 import { PdfParserUploadResultDto, PdfParserUploadResultSchema } from './schemas/pdf-parser-upload-result.schema';
-import{ PdfParserRequestDto, PdfParserRequestSchema, type PdfParserUrlResultDto } from './schemas/pdf-parser-base.schema';
+import{ PdfParserRequestDto, PdfParserRequestSchema, PdfParserUrlResultDto, PdfParserUrlResultSchema } from './schemas/pdf-parser-base.schema';
 import { PdfSizeError } from "./exceptions/exceptions"
 import { UrlRouteSchema,UploadRouteSchema} from "../pdf-parser/schemas/pdf-parser.route-schema"
 import { RouteConfig } from '@nestjs/platform-fastify';
@@ -105,7 +105,7 @@ export class PdfParserController {
       The file must be a PDF parsable text context, with a maximum size of 10MB`,
     })
     @ApiOkResponse({
-      schema: PdfParserUploadResultSchema,
+      schema: PdfParserUrlResultSchema,
       description:'The PDF was parsed and post-processed successfully. Its content is returned as text.',
     })
     @ApiBody({
