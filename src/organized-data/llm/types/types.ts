@@ -1,4 +1,4 @@
- export type model = {
+ export type Model = {
     name: string;
     apiKey?:string;
  };

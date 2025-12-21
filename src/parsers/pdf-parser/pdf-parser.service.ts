@@ -12,7 +12,7 @@ export class PdfParserService {
 
     async parsePdf(file:Buffer){
          
-        const loadingTask=pdfjs.getDocument({ data: new Uint8Array(file)});
+        const loadingTask=pdfjs.getDocument({ data: new Uint8Array(file) });
         const pdf=await loadingTask.promise;
 
         let text='';

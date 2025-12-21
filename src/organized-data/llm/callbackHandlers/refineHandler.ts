@@ -1,4 +1,5 @@
 import { BaseCallbackHandler } from "@langchain/core/callbacks/base";
+import { Serialized } from "@langchain/core/load/serializable";
 
 export class RefineCallbackHandler extends BaseCallbackHandler {
   name = "RefineCallbackHandler";
@@ -8,11 +9,16 @@ export class RefineCallbackHandler extends BaseCallbackHandler {
     return this._llmCallCount;
   }
 
-  async handleLLMStart() {
+  async handleLLMStart(
+    llm: Serialized,
+    prompts: string[],
+    runId: string,
+    parentRunId?: string
+  ): Promise<void> {
     this._llmCallCount++;
   }
-  
-};
+}
+
 
 //Both handlers contain llmCallcount,so
 // DebugCallbackHandler: Tracks detailed chain & LLM execution for developer debugging and observability. 

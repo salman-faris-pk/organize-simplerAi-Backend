@@ -7,12 +7,22 @@ import { Serialized } from "@langchain/core/load/serializable"
 
 
 export class DebugCallbcakHandler extends BaseCallbackHandler {
-    name: 'DebugCallbcakHandler';
+    name = "DebugCallbackHandler"
 
 
    private _debugReport: DebugReport;
    private _chainCallCount = 0;
    private _llmCallCount = 0;
+
+   constructor() {
+    super();
+    this._debugReport = {
+      chainCallCount: 0,
+      llmCallCount: 0,
+      chains: [],
+      llms: [],
+    };
+  }
 
    get debugReport(){
     return this._debugReport;
@@ -23,7 +33,7 @@ export class DebugCallbcakHandler extends BaseCallbackHandler {
    async handleChainStart(chain:Serialized,inputs: ChainValues,runId: string):Promise<void>{
        
     const startedChain: ChainCall={
-        chainName: chain.id.at(-1) ?? 'unknown-chain',
+        chainName: Array.isArray(chain.id) && chain.id.length > 0 ? chain.id[chain.id.length - 1] : "unknown-chain",
         runId,
         start:{
             inputs,
@@ -36,48 +46,41 @@ export class DebugCallbcakHandler extends BaseCallbackHandler {
         },
     };
 
-     this._debugReport ={
-        chainCallCount: ++this._chainCallCount,
-        llmCallCount : this._llmCallCount,
-        chains: [...(this._debugReport?.chains ?? []), startedChain],  //Take all previous chains (if exist otherwise empty array ) and append or add the new one
-        llms: [...(this._debugReport.llms ?? [])]
-     }
-
+      this._chainCallCount++;
+      this._debugReport.chainCallCount = this._chainCallCount;
+      this._debugReport.chains.push(startedChain);
    };
 
 
    async handleChainEnd(outputs:ChainValues,runId: string):Promise<void>{
-         const endedChain= this._debugReport?.chains.find(
+        const endedChain= this._debugReport?.chains.find(
             (chain) => chain.runId === runId
         );
-
-        if(!endedChain){
-            return;
+        if(endedChain){
+          endedChain.end.outputs = outputs;   
         };
-
-        endedChain.end.outputs = outputs;
-
    };
 
-   async handleChainError(err: any, runId: string):Promise<void> {
+   async handleChainError(err: unknown, runId: string):Promise<void> {
         const erroredchain= this._debugReport?.chains.find(
             (chain) => chain.runId === runId
         );
-
-        if(!erroredchain){
-            return;
+        if(erroredchain){
+          erroredchain.error.err = err;
         };
-
-        erroredchain.error.err = err;
    };
 
 
 
-   async handleLLMStart(llm: Serialized, prompts: string[], runId: string, parentRunId?: string):Promise<void> {
+   async handleLLMStart(
+    llm: Serialized, 
+    prompts: string[], 
+    runId: string, 
+    parentRunId?: string
+  ):Promise<void> {
         
     const startedLlmCall: LlmCall ={
-
-         llmName: llm.id.at(-1) ?? " unknown-llm",
+         llmName: Array.isArray(llm.id) && llm.id.length > 0 ? llm.id[llm.id.length - 1] : "unknown-llm",
          parentRunId,
          runId,
          start: {
@@ -91,40 +94,31 @@ export class DebugCallbcakHandler extends BaseCallbackHandler {
          },
     };
 
-       this._debugReport={
-          chainCallCount: this._chainCallCount,
-          llmCallCount: ++this._llmCallCount,
-          chains: [...(this._debugReport?.chains ?? [])],
-          llms: [...(this._debugReport?.llms ?? []), startedLlmCall]
-       };
-
+        this._llmCallCount++;
+        this._debugReport.llmCallCount = this._llmCallCount;
+        this._debugReport.llms.push(startedLlmCall);
    };
 
 
-   async handleLLMEnd(output: LLMResult, runId: string):Promise<void> {
-         
+   async handleLLMEnd(output: LLMResult, runId: string):Promise<void> {        
        const endedLlmCall = this.debugReport.llms.find(
          (llmCall) => llmCall.runId === runId,
        );
 
-       if (!endedLlmCall) {
-         return;
+       if (endedLlmCall) {
+        endedLlmCall.end.outputs = output; 
        }
-
-       endedLlmCall.end.outputs = output;
    };
 
 
-   async handleLLMError(err: any, runId: string):Promise<void> {
+   async handleLLMError(err: unknown, runId: string):Promise<void> {
        const erroredLLmCall= this._debugReport.llms.find(
         (llmcall) => llmcall.runId === runId
        );
 
-       if(!erroredLLmCall){
-        return;
+       if(erroredLLmCall){
+        erroredLLmCall.error.err = err; 
        };
-
-       erroredLLmCall.error.err = err;
    }
    
 };
