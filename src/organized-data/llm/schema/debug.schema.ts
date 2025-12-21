@@ -43,7 +43,9 @@ const LlmCallSchema = Type.Object({
   }),
 });
 
-export type LlmChain =Static<typeof LlmCallSchema>
+export type LlmCall =Static<typeof LlmCallSchema>
+
+
 
 
 const DebugRepostSchema= Type.Object({
