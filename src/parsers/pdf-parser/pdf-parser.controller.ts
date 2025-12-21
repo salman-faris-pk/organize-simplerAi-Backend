@@ -1,11 +1,11 @@
 import type { MultipartFile } from '@fastify/multipart';
-import { BadRequestException, Controller, HttpCode, Post, Req, UnprocessableEntityException } from '@nestjs/common';
+import { BadRequestException, Controller, HttpCode, InternalServerErrorException, PayloadTooLargeException, Post, Req, UnprocessableEntityException } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiResponse, ApiSecurity, ApiTags, ApiUnauthorizedResponse, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { PdfParserService } from './pdf-parser.service';
 import { PdfParserUploadResultDto, PdfParserUploadResultSchema } from './schemas/pdf-parser-upload-result.schema';
 import{ PdfParserRequestDto, PdfParserRequestSchema, PdfParserUrlResultDto, PdfParserUrlResultSchema } from './schemas/pdf-parser-base.schema';
-import { PdfSizeError } from "./exceptions/exceptions"
+import { PdfNotParsedError, PdfSizeError } from "./exceptions/exceptions"
 import { UrlRouteSchema,UploadRouteSchema} from "../pdf-parser/schemas/pdf-parser.route-schema"
 import { RouteConfig } from '@nestjs/platform-fastify';
 
@@ -76,8 +76,8 @@ export class PdfParserController {
        }
 
        if (file.file.truncated) {
-         throw new PdfSizeError(5);
-       }
+         throw new PayloadTooLargeException('PDF file is larger than 5MB');
+       };
 
         try {
 
@@ -91,8 +91,11 @@ export class PdfParserController {
          };
 
          } catch (err) {
-         throw new UnprocessableEntityException(err.message);
-       }
+           if (err instanceof PdfNotParsedError) {
+             throw new UnprocessableEntityException(err.message);
+           };
+           throw new InternalServerErrorException('Failed to parse file')
+         }
     };
 
 
@@ -120,6 +123,8 @@ export class PdfParserController {
       @Req() req:FastifyRequest<{Body: PdfParserRequestDto}>
     ) : Promise<PdfParserUrlResultDto> {
   
+      try {
+
       const { url } = req.body;
 
       const file= await this.pdfParserService.loadPdfFromUrl(url);
@@ -129,6 +134,17 @@ export class PdfParserController {
         originalUrl: url,
         content: text
       };
+
+       } catch (err) {
+         if(err instanceof PdfNotParsedError){
+            throw new UnprocessableEntityException(err.message)
+         }
+         if (err instanceof PdfSizeError) {
+          throw new PayloadTooLargeException(err.message);
+        }
+
+         throw new InternalServerErrorException('Failed to parse PDF file');
+      }
 
     };
 };

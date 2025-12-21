@@ -1,26 +1,14 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
 
-export class PdfSizeError extends HttpException {
-  constructor(maxSizeMB = 5) {
-    super(
-      {
-        message: `The PDF file is larger than ${maxSizeMB}MB`,
-        error: 'PDF_SIZE_LIMIT_EXCEEDED',
-      },
-      HttpStatus.PAYLOAD_TOO_LARGE,
-    );
+export class PdfSizeError extends Error {
+  constructor() {
+    super('The PDF file is larger than 5MB');
   }
 }
 
-export class PdfNotParsedError extends HttpException {
+export class PdfNotParsedError extends Error {
   constructor() {
     super(
-      {
-        message:
-          'The PDF file could not be parsed. It may not contain plain text or information in text format.',
-        error: 'PDF_NOT_PARSABLE',
-      },
-      HttpStatus.UNPROCESSABLE_ENTITY,
+      'The PDF file could not be parsed. It may not contain plain text or information in text format.',
     );
   }
 }

@@ -62,13 +62,13 @@ export class PdfParserService {
     const contentLength = Number(response.headers['content-length']);
 
      if (!isNaN(contentLength) && contentLength > MAX_SIZE) {
-       throw new PdfSizeError(5);
+       throw new PdfSizeError();
      };
 
      const buffer= Buffer.from(response.data, 'binary')
 
-     if(buffer.length > MAX_SIZE){
-      throw new PdfSizeError(5);
+     if(buffer.length > MAX_SIZE){    //if actual file size greaer than max-size
+      throw new PdfSizeError();
      };
 
      return buffer;
