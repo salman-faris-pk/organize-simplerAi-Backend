@@ -8,6 +8,7 @@ import configuration from './config/configuration';
 import { OrganizedDataModule } from './organized-data/organized-data.module';
 
 
+
 @Module({
   imports: [ConfigModule.forRoot({ 
     isGlobal: true,
@@ -29,7 +30,7 @@ import { OrganizedDataModule } from './organized-data/organized-data.module';
   }),
   AuthModule,
   ParsersModule,
-  OrganizedDataModule
+  OrganizedDataModule,
 ],
 })
 export class AppModule {}

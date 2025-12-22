@@ -25,7 +25,7 @@ async function bootstrap() {
         plugins: [
           require('ajv-formats')
         ]
-      }
+      },
     }),
     {
       bufferLogs: true,
@@ -33,6 +33,7 @@ async function bootstrap() {
   );
 
   app.enableCors();
+
 
   await app.register(helmet, {
     contentSecurityPolicy: false

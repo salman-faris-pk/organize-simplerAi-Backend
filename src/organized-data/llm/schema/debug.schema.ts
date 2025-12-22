@@ -48,7 +48,7 @@ export type LlmCall =Static<typeof LlmCallSchema>
 
 
 
-const DebugRepostSchema= Type.Object({
+export const DebugRepostSchema= Type.Object({
     chainCallCount: Type.Number({
         description: 'number of chain created'
     }),

@@ -1,4 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable,Logger } from '@nestjs/common';
 
 @Injectable()
-export class JsonService {}
+export class JsonService {
+
+    private readonly logger = new Logger(JsonService.name);
+
+    
+
+}
