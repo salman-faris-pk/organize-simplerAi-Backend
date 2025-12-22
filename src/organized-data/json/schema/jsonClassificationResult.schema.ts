@@ -1,5 +1,5 @@
 import { Static, Type } from "@sinclair/typebox"
-import { DebugRepostSchema } from "../../llm/schema/debug.schema"
+import { DebugReportSchema } from "../../llm/schema/debug.schema"
 
 
 export const ClassificationSchema = Type.Object({
@@ -20,7 +20,7 @@ export const JsonClassificationResultSchema = Type.Object({
 
   classification: ClassificationSchema,
 
-  debug: Type.Optional(DebugRepostSchema),
+  debug: Type.Optional(DebugReportSchema),
 });
 
 

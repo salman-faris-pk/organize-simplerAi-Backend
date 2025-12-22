@@ -1,5 +1,5 @@
 import { Static, Type } from "@sinclair/typebox"
-import { DebugRepostSchema } from "../../llm/schema/debug.schema"
+import { DebugReportSchema } from "../../llm/schema/debug.schema"
 
 
 
@@ -41,7 +41,7 @@ export const JsonAnalyzeResultSchema = Type.Object({
   analysis: AnalysisSchema,
 
   debug: Type.Optional(
-     DebugRepostSchema,
+     DebugReportSchema,
   ),
 });
 

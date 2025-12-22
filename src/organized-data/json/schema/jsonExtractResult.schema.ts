@@ -1,4 +1,4 @@
-import { DebugRepostSchema } from "../../llm/schema/debug.schema"
+import { DebugReportSchema } from "../../llm/schema/debug.schema"
 import { Type, Static } from '@sinclair/typebox';
 
 
@@ -50,7 +50,7 @@ export const JsonExtractResultSchema = Type.Object({
     description: 'organized data extracted from text as json',
   }),
 
-  debug: Type.Optional(DebugRepostSchema),
+  debug: Type.Optional(DebugReportSchema),
 });
 
 

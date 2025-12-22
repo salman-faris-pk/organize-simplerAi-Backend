@@ -48,7 +48,7 @@ export type LlmCall =Static<typeof LlmCallSchema>
 
 
 
-export const DebugRepostSchema= Type.Object({
+export const DebugReportSchema= Type.Object({
     chainCallCount: Type.Number({
         description: 'number of chain created'
     }),
@@ -62,4 +62,4 @@ export const DebugRepostSchema= Type.Object({
 
 })
 
-export type DebugReport =Static<typeof DebugRepostSchema>;
+export type DebugReport =Static<typeof DebugReportSchema>;
