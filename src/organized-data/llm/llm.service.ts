@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 import { Model } from './types/types';
 import { BaseLanguageModel } from '@langchain/core/language_models/base';
-import { LLMApiKeyInvalidError, LLMApiKeyMissingError, LLMBadRequestReceivedError, LLMNotAvailableError, PromptTemplateFormateError, RefinePromptInputVaribalesError } from './exceptions/exceptions';
+import { LLMApiKeyInvalidError, LLMApiKeyMissingError, LLMBadRequestReceivedError, LLMNotAvailableError, PromptTemplateFormateError, RefinePromptInputVaribalesError, RefineReservedChainValuesError } from './exceptions/exceptions';
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { PromptTemplate } from '@langchain/core/prompts';
 import { ChainValues } from '@langchain/core/utils/types';
 import { DebugCallbcakHandler } from './callbackHandlers/debugHandler';
 import { Runnable } from '@langchain/core/runnables';
+import { Document } from '@langchain/core/documents';
+import { RefineCallbackHandler } from './callbackHandlers/refineHandler';
 
 
 @Injectable()
@@ -49,7 +51,7 @@ async generateOutput(
         }
         throw err;
     }          
-}        
+};        
 
 
 async splitDocument(
@@ -66,6 +68,89 @@ async splitDocument(
       return output;
  };
 
+
+
+ async generateRefineOutput(
+    model: Model,
+    initialPromptTemplate: PromptTemplate,
+    refinePromptTemplate: PromptTemplate,
+    chainValues: ChainValues & { input_documents: Document[]},
+    debug: boolean = false
+ ) {
+
+    const llm= this.retrieveAvailableModel(model);
+
+    if(chainValues['context'] || chainValues['existing_answer']){
+       throw new RefineReservedChainValuesError('context or existing_answer')
+    };
+
+    this.throwErrorIfInputVariableMissing(
+        'initialPromptTemplate',
+        'context',
+        initialPromptTemplate.inputVariables
+    );
+
+    this.throwErrorIfInputVariableMissing(
+        'refinePromptTemplate',
+        'context',
+        refinePromptTemplate.inputVariables
+    );
+
+    this.throwErrorIfInputVariableMissing(
+        'refinePromptTemplate',
+        'existing_answer',
+        refinePromptTemplate.inputVariables
+    );
+
+    const documents = chainValues.input_documents;
+    let answer:string | undefined;
+
+    const debugHandler = new DebugCallbcakHandler();
+    const refineHandler = new RefineCallbackHandler();
+    const callbacks= debug ? [refineHandler, debugHandler] : [refineHandler];
+
+    try {
+        for(const doc of documents){
+            if(!answer){
+                const chain= initialPromptTemplate.pipe(llm);
+
+                answer= await chain.invoke(
+                    { context: doc.pageContent },
+                    { callbacks }
+                );
+            }else{
+               const  refineChain = refinePromptTemplate.pipe(llm);
+
+               answer = await refineChain.invoke(
+                 {
+                   context: doc.pageContent,
+                   existing_answer: answer,
+                 },
+                 { callbacks },
+               );
+            }
+        };
+
+        return {
+            output: answer,
+            llmCallCount: refineHandler.llmCallCount,
+            debugReport: debug ? debugHandler.debugReport : null,
+        }
+        
+    } catch (err) {
+        if (err?.response?.status === 401) {
+          throw new LLMApiKeyInvalidError(model.name);
+        };
+
+        if (err?.response?.status === 400) {
+        throw new LLMBadRequestReceivedError(model.name);
+        };
+
+        throw err;
+    }
+ };
+
+ 
 
  private throwErrorIfInputVariableMissing(
    templateName: string,
