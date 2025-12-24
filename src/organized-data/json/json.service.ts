@@ -6,6 +6,8 @@ import { jsonAnalysis, jsonClassification, jsonOneShotExtraction, jsonZeroShotSc
 import { InvalidJsonOutputError } from './exceptions/exception';
 import { Analysis } from './schema/jsonAnalyzeResult.Schema';
 import { Classification } from './schema/jsonClassificationResult.schema';
+import { PromptTemplate } from '@langchain/core/prompts';
+
 
 
 @Injectable()
@@ -200,9 +202,47 @@ export class JsonService {
       try {
           const json: Classification= JSON.parse(output.content);
 
-        
+          if(json.classification && json.confidence){
+
+            return { 
+              json,
+              debugReport 
+            };
+
+          }else{
+            throw new InvalidJsonOutputError();
+          };
+
       } catch (err) {
         throw new InvalidJsonOutputError();
       }
-  }
+  };
+
+
+
+  async handleGenericPrompt(
+    model: Model,
+    prompt: string,
+    debug = false
+  ){
+
+     const { output,debugReport}= await this.llmService.generateOutput(
+        model,
+        new PromptTemplate({
+            inputVariables: ['prompt'],
+            template: '{prompt}',
+        }),
+        {
+            prompt
+        },
+        debug
+     );
+
+     const json ={
+        output: output.content
+     };
+
+     return {json, debugReport};
+
+  };
 };
