@@ -32,6 +32,8 @@ export const AnalysisSchema = Type.Object({
   }),
 });
 
+export type Analysis = Static<typeof AnalysisSchema>
+
 
 export const JsonAnalyzeResultSchema = Type.Object({
   model: Type.String({

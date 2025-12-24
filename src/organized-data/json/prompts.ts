@@ -42,6 +42,7 @@ Your outputs must ONLY be in JSON format and follow the schema specified above.
 `;
 
 
+
 const jsonOneShotExtractionTemplate = `
 You are a highly efficient text processing application
 Your main objective is to accurately parse the user's input text and transform it into a JSON object that compiles with the schema provided below.
@@ -109,7 +110,7 @@ Your Classification:
 `;
 
 
-export const jsonZeroShotSchemaExtraction = new PromptTemplate({
+export const jsonZeroShotSchemaExtraction = new PromptTemplate({  //just instructions, no examples or demo we set in propmt 
     inputVariables:['context', 'jsonSchema'],
     template: jsonZeroShotSchemaExtractionTemplate
 });
@@ -119,7 +120,7 @@ export const jsonZeroShotSchemaExtractionRefine = new PromptTemplate({
   template: jsonZeroShotSchemaExtractionRefineTemplate,
 });
 
-export const jsonOneShotExtraction = new PromptTemplate({
+export const jsonOneShotExtraction = new PromptTemplate({    //1 example means one input example and one output exmaple in prompt ,but few shot means one or more allowed exmaples
   inputVariables: ['exampleInput', 'exampleOutput', 'context'],
   template: jsonOneShotExtractionTemplate,
 });

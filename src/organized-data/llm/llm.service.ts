@@ -103,22 +103,32 @@ async splitDocument(
     );
 
     const documents = chainValues.input_documents;
-    let answer:string | undefined;
-
+   
     const debugHandler = new DebugCallbcakHandler();
     const refineHandler = new RefineCallbackHandler();
     const callbacks= debug ? [refineHandler, debugHandler] : [refineHandler];
 
+    if (documents.length === 0) {
+        return {
+            output: '',
+            llmCallCount: refineHandler.llmCallCount,
+            debugReport: debug ? debugHandler.debugReport : null,
+        };
+    };
+
     try {
+
+    let answer: string | undefined;
+
         for(const doc of documents){
-            if(!answer){
+            if(!answer){    //it check answer is undefine or empty in first iteration then ...
                 const chain= initialPromptTemplate.pipe(llm);
 
                 answer= await chain.invoke(
                     { context: doc.pageContent },
                     { callbacks }
                 );
-            }else{
+            }else{    // this works only if there is answer is there and refine ..
                const  refineChain = refinePromptTemplate.pipe(llm);
 
                answer = await refineChain.invoke(
@@ -132,7 +142,7 @@ async splitDocument(
         };
 
         return {
-            output: answer,
+            output: answer || '',
             llmCallCount: refineHandler.llmCallCount,
             debugReport: debug ? debugHandler.debugReport : null,
         }
@@ -162,6 +172,8 @@ async splitDocument(
       };
  };       
    
+
+
  private retrieveAvailableModel(model: Model): BaseLanguageModel {
      switch(model.name) {
         case 'gemini-2.0-flash-lite':

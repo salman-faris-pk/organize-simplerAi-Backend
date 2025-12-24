@@ -12,6 +12,8 @@ export const ClassificationSchema = Type.Object({
   }),
 });
 
+export type Classification = Static<typeof ClassificationSchema>
+
 
 export const JsonClassificationResultSchema = Type.Object({
   model: Type.String({

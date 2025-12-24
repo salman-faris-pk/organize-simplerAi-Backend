@@ -14,9 +14,9 @@ const AnalysisModelSchema = Type.Object({
 
 
 export const JsonAnalyzeRequestSchema = Type.Object({
-      model: AnalysisModelSchema,
+  model: AnalysisModelSchema,
 
-       originalText: Type.String({
+  originalText: Type.String({
     description: 'original text from which the json was generated',
     minLength: 1,
   }),

@@ -15,6 +15,5 @@ export const JsonGenericOutputResultSchema = Type.Object({
   debug: Type.Optional(DebugReportSchema),
 });
 
-export type JsonGenericOutputResult = Static<
-  typeof JsonGenericOutputResultSchema
->;
+
+export type JsonGenericOutputResult = Static<typeof JsonGenericOutputResultSchema>;
