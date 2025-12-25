@@ -59,8 +59,7 @@ export class JsonService {
     const params = refineParams || this.defaultRefineParams;
     const documents = await this.llmService.splitDocument(text, params);
 
-    const { output, llmCallCount, debugReport } =
-      await this.llmService.generateRefineOutput(
+    const { output, llmCallCount, debugReport } = await this.llmService.generateRefineOutput(
         model,
         jsonZeroShotSchemaExtraction,
         jsonZeroShotSchemaExtractionRefine,

@@ -9,6 +9,8 @@ import { VersioningType } from '@nestjs/common';
 import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart"
 import compress from "@fastify/compress"
+import { ISOLogger } from './logger/iso-logger.service';
+import { registerFastifyLogger } from './logger/fastify-logger.hook';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -31,6 +33,12 @@ async function bootstrap() {
       bufferLogs: true,
     }
   );
+
+  if (process.env.NODE_ENV !== 'production') {
+    const fastify = app.getHttpAdapter().getInstance();
+    const logger = await app.resolve(ISOLogger);
+    registerFastifyLogger(fastify, logger);
+  }
 
   app.enableCors();
 

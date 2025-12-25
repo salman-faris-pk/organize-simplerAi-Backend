@@ -1,4 +1,5 @@
 import { Type, Static } from '@sinclair/typebox';
+import { JsonExtractResultSchema } from './jsonExtractResult.schema';
 
 
 
@@ -36,7 +37,7 @@ export const RefineParamsSchema = Type.Object(
     }
 );
 
-export const RefineSChema = Type.Union([
+export const RefineSchema = Type.Union([
     Type.Boolean({
         description: 'enable or disable refine multi-step extraction',
         default: false,
@@ -50,7 +51,7 @@ export const SchemaRequestSchema= Type.Object({
         format: 'json',
         description: 'json schema to use as model for data extraction'
      }),
-     refine: Type.Optional(RefineSChema)
+     refine: Type.Optional(RefineSchema)
 });
 
 export const ExampleRequestSchema =Type.Object({
@@ -65,7 +66,7 @@ export const JsonExtractSchemaRequest = Type.Intersect([
     SchemaRequestSchema
 ]);
 
-export type JsonExtractResultDto = Static<typeof JsonExtractSchemaRequest>
+export type JsonExtractSchemaRequestDto = Static<typeof JsonExtractSchemaRequest>
 
 
 export const JsonExtractExampleRequest = Type.Intersect([
@@ -76,3 +77,8 @@ export const JsonExtractExampleRequest = Type.Intersect([
 export type JsonExtractExampleDto = Static<typeof JsonExtractExampleRequest>;
 
 
+//for routeconfig
+export const ExtractSchemaRouteSchema = {
+  body: JsonExtractSchemaRequest,
+  response: { 200: JsonExtractResultSchema },
+};

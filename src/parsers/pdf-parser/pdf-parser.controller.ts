@@ -1,9 +1,9 @@
-import { BadRequestException, Controller, HttpCode, InternalServerErrorException, PayloadTooLargeException, Post, Req, UnprocessableEntityException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, HttpCode, InternalServerErrorException, PayloadTooLargeException, Post, Req, UnprocessableEntityException } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiOkResponse, ApiOperation, ApiResponse, ApiSecurity, ApiTags, ApiUnauthorizedResponse, ApiUnprocessableEntityResponse } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { PdfParserService } from './pdf-parser.service';
 import { PdfParserUploadResultDto, PdfParserUploadResultSchema } from './schemas/pdf-parser-upload-result.schema';
-import{ PdfParserRequestDto, PdfParserRequestSchema, PdfParserUrlResultDto, PdfParserUrlResultSchema } from './schemas/pdf-parser-base.schema';
+import{ type PdfParserRequestDto, PdfParserRequestSchema, PdfParserUrlResultDto, PdfParserUrlResultSchema } from './schemas/pdf-parser-base.schema';
 import { PdfNotParsedError, PdfSizeError } from "./exceptions/exceptions"
 import { UrlRouteSchema,UploadRouteSchema} from "../pdf-parser/schemas/pdf-parser.route-schema"
 import { RouteConfig } from '@nestjs/platform-fastify';
@@ -62,8 +62,7 @@ export class PdfParserController {
     schema: UploadRouteSchema
   })
   @HttpCode(200)
-  async parsePdfFromUpload(
-    @Req() req: FastifyRequest,
+  async parsePdfFromUpload(@Req() req: FastifyRequest,
   ): Promise<PdfParserUploadResultDto> {
     
       const file = await req.file();
@@ -116,11 +115,11 @@ export class PdfParserController {
     schema: UrlRouteSchema,
   })
   @HttpCode(200)
-  async parsePdfFromUrl(
-    @Req() req: FastifyRequest<{ Body: PdfParserRequestDto }>,
+  async parsePdfFromUrl(@Body() body: PdfParserRequestDto
   ): Promise<PdfParserUrlResultDto> {
     try {
-      const { url } = req.body;
+      
+      const { url } = body;
 
       const file = await this.pdfParserService.loadPdfFromUrl(url);
       const text = await this.pdfParserService.parsePdf(file);

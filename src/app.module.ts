@@ -6,7 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { ParsersModule } from './parsers/parsers.module';
 import configuration from './config/configuration';
 import { OrganizedDataModule } from './organized-data/organized-data.module';
-
+import { LoggerModule } from './logger/logger.module';
 
 
 @Module({
@@ -31,6 +31,7 @@ import { OrganizedDataModule } from './organized-data/organized-data.module';
   AuthModule,
   ParsersModule,
   OrganizedDataModule,
+  LoggerModule
 ],
 })
 export class AppModule {}
