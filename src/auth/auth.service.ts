@@ -1,30 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ApiKey } from '../database/entities/api-key.entity';
-import { Repository } from 'typeorm';
-
+import { DrizzleService } from 'src/database/drizzle.service';
+import { apiKeys } from 'src/database/schema';
+import { eq } from 'drizzle-orm';
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-
 @Injectable()
 export class AuthService {
+  constructor(private readonly databaseService: DrizzleService) {}
 
-   constructor(
-     @InjectRepository(ApiKey) private apikeyRepository: Repository<ApiKey>
-   ){}
+  async validateApiKey(apiKey: string) {
+    if (!UUID_REGEX.test(apiKey)) {
+      return false;
+    }
 
-    async validateApiKey(apiKey:string) {
+    const [apiKeyExists] = await this.databaseService.db
+      .select()
+      .from(apiKeys)
+      .where(eq(apiKeys.id, apiKey))
+      .limit(1);
 
-       if(!UUID_REGEX.test(apiKey)){
-        return true;
-      };
 
-      const apiKeyExists=await this.apikeyRepository.findOneBy({id: apiKey});
-      console.log("apikeyexist",apiKeyExists, !!apiKeyExists);
-      // return !!apiKeyExists;
-      return true;
-   }
-
+      // Return true if API key exists
+      return !!apiKeyExists;
+  }
 }
