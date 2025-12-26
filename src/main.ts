@@ -12,7 +12,7 @@ import compress from "@fastify/compress"
 import { ISOLogger } from './logger/iso-logger.service';
 import { registerFastifyLogger } from './logger/fastify-logger.hook';
 import './typebox-formats'
-
+import { ConfigService } from "@nestjs/config"
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -35,8 +35,10 @@ async function bootstrap() {
       bufferLogs: true,
     }
   );
-
-  if (process.env.NODE_ENV !== 'production') {
+  const configService = app.get(ConfigService);
+  const nodeEnv = configService.get<string>('nodeEnv');
+  
+  if (nodeEnv !== 'production') {
     const fastify = app.getHttpAdapter().getInstance();
     const logger = await app.resolve(ISOLogger);
     registerFastifyLogger(fastify, logger);
@@ -64,7 +66,7 @@ async function bootstrap() {
    });
 
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (nodeEnv !== 'production') {
       const config= new DocumentBuilder()
        .setTitle('Organize Simpler APi')
        .setContact(

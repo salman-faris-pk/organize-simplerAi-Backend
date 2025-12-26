@@ -4,7 +4,7 @@ import { JsonController } from './json/json.controller';
 import { LlmService } from './llm/llm.service';
 
 @Module({
-  providers: [JsonService, LlmService,],
+  providers: [JsonService, LlmService],
   controllers: [JsonController]
 })
 export class OrganizedDataModule {}
