@@ -12,6 +12,7 @@ import { PromptTemplate } from '@langchain/core/prompts';
 
 @Injectable()
 export class JsonService {
+  
   private defaultRefineParams: RefineParams = {
     chunkSize: 2000,
     overlap: 100,
@@ -89,7 +90,7 @@ export class JsonService {
     text: string,
     model: Model,
     example: { input: string; output: string },
-    debug: false,
+    debug = false,
   ) {
 
     const { output, debugReport } = await this.llmService.generateOutput(
@@ -178,7 +179,7 @@ export class JsonService {
     model: Model,
     text: string,
     categories: string[],
-    debug: false,
+    debug = false,
   ) {
      
       const outputFormat={
@@ -219,11 +220,7 @@ export class JsonService {
 
 
 
-  async handleGenericPrompt(
-    model: Model,
-    prompt: string,
-    debug = false
-  ){
+  async handleGenericPrompt(model: Model,prompt: string,debug = false){
 
      const { output,debugReport}= await this.llmService.generateOutput(
         model,

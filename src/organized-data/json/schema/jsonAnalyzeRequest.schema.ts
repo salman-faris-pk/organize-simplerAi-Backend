@@ -1,4 +1,5 @@
 import { Type, Static } from '@sinclair/typebox';
+import { JsonAnalyzeResultSchema } from './jsonAnalyzeResult.Schema';
 
 
 
@@ -41,3 +42,9 @@ export const JsonAnalyzeRequestSchema = Type.Object({
 });
 
 export type JsonAnalyzeRequest = Static<typeof JsonAnalyzeRequestSchema>
+
+
+export const JsonAnalyzeRouteSchema ={
+    body: JsonAnalyzeRequestSchema,
+    response: { 200: JsonAnalyzeResultSchema },
+};

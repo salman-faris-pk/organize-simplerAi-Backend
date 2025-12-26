@@ -1,4 +1,5 @@
 import { Type, Static } from '@sinclair/typebox';
+import { JsonGenericOutputResultSchema } from './jsonGenericOutputResult.schema';
 
 
 export const GenericOutputModelSchema = Type.Object({
@@ -34,3 +35,9 @@ export const JsonGenericOutputRequestSchema = Type.Object({
 
 
 export type JsonGenericOutputRequest = Static<typeof JsonGenericOutputRequestSchema>;
+
+
+export const JsonGenericOutputRouteSchema = {
+   body: JsonGenericOutputRequestSchema,
+   response: { 200:  JsonGenericOutputResultSchema},
+}

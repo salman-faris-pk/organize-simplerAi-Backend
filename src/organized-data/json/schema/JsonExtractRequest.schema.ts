@@ -82,3 +82,8 @@ export const ExtractSchemaRouteSchema = {
   body: JsonExtractSchemaRequest,
   response: { 200: JsonExtractResultSchema },
 };
+
+export const JsonExtractExampleRouteSchema ={
+    body: JsonExtractExampleRequest,
+    response: { 200: JsonExtractResultSchema },
+};

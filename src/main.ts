@@ -11,6 +11,8 @@ import multipart from "@fastify/multipart"
 import compress from "@fastify/compress"
 import { ISOLogger } from './logger/iso-logger.service';
 import { registerFastifyLogger } from './logger/fastify-logger.hook';
+import './typebox-formats'
+
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(

@@ -1,4 +1,5 @@
 import { Type, Static } from '@sinclair/typebox';
+import { JsonClassificationResultSchema } from './jsonClassificationResult.schema';
 
 
 export const ClassificationModelSchema = Type.Object({
@@ -41,3 +42,9 @@ export const JsonClassificationRequestSchema = Type.Object({
 export type JsonClassificationRequest = Static<
   typeof JsonClassificationRequestSchema
 >;
+
+
+export const JsonClassificationRouteSchema ={
+   body: JsonClassificationRequestSchema,
+   response: { 200: JsonClassificationResultSchema },
+};
