@@ -1,0 +1,14 @@
+services:
+  app:
+    build: 
+      context: .
+      target: production
+    container_name: organize-simple-app
+    restart: always
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: 'debug, verbose'
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - '3000:3000'

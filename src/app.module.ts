@@ -7,6 +7,7 @@ import configuration from './config/configuration';
 import { OrganizedDataModule } from './organized-data/organized-data.module';
 import { LoggerModule } from './logger/logger.module';
 import { DrizzleModule } from './database/drizzle.module';
+import { AppController } from './app.controller';
 
 
 @Module({
@@ -27,5 +28,6 @@ import { DrizzleModule } from './database/drizzle.module';
   LoggerModule,
   DrizzleModule
 ],
+controllers:[AppController]
 })
 export class AppModule {}

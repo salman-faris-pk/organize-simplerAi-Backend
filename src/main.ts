@@ -18,6 +18,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
+      logger: false,
       bodyLimit: 10 * 1024 * 1024,
       ajv: {
         customOptions:{
@@ -37,6 +38,8 @@ async function bootstrap() {
   );
   const configService = app.get(ConfigService);
   const nodeEnv = configService.get<string>('nodeEnv');
+  const port = configService.get<string>('PORT');
+
   
   if (nodeEnv !== 'production') {
     const fastify = app.getHttpAdapter().getInstance();
@@ -95,7 +98,7 @@ async function bootstrap() {
       };
 
              
-     await app.listen(process.env.PORT ?? 3000);
+     await app.listen(port ?? 3000, '0.0.0.0');
 }
 bootstrap();
 
