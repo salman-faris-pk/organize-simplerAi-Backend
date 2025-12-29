@@ -1,6 +1,10 @@
 {
   "name": "organise-simple",
   "version": "0.0.1",
+   "engines": {
+    "node": "22.14.0",
+    "npm": "11.4.2"
+  },
   "description": "",
   "author": "",
   "private": true,
