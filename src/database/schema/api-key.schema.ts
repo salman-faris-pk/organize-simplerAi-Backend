@@ -1,11 +1,13 @@
-import { pgTable, uuid,timestamp } from "drizzle-orm/pg-core";
-import { applications } from "./application.schema";
+import { pgTable, uuid, varchar, text, boolean, timestamp } from 'drizzle-orm/pg-core';
 
 
-
-export const apiKeys = pgTable('api_keys', {
-    id: uuid('id').primaryKey().defaultRandom(),
-    applicationId: uuid('application_id').notNull().references(() => applications.id , { onDelete: 'cascade'}),
-    createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { mode: 'date' }).notNull().defaultNow(),
-})
+export const companies = pgTable('companies', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  passwordHash: text('password_hash'),
+  apiKey: text('api_key'),
+  active: boolean('active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  githubId: varchar('github_id', { length: 255 }),
+});

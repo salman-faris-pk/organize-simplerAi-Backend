@@ -22,11 +22,17 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
     try {
       this.pool = new Pool({
         connectionString: this.configService.get<string>('DATABASE_URL'),
+        max: 1,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
       });
 
       this.db = drizzle(this.pool, { schema });
 
       this.logger.log('Database connected successfully');
+
+      setInterval(() => this.db.execute(`SELECT 1`), 5000);
+
     } catch (error) {
       this.logger.error('Failed to connect to Db', error.stack);
       throw error;

@@ -8,14 +8,19 @@ import { OrganizedDataModule } from './organized-data/organized-data.module';
 import { LoggerModule } from './logger/logger.module';
 import { DrizzleModule } from './database/drizzle.module';
 import { AppController } from './app.controller';
+import { HttpModule } from '@nestjs/axios';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CronService } from './cron.service';
 
 
 @Module({
-  imports: [ConfigModule.forRoot({ 
+  imports: [
+    ConfigModule.forRoot({ 
     isGlobal: true,
     load:[configuration],
     cache: true
   }),
+  ScheduleModule.forRoot(),
   ThrottlerModule.forRoot([
      {
       ttl: 30,  //seconds
@@ -24,10 +29,12 @@ import { AppController } from './app.controller';
   ]),
   AuthModule,
   ParsersModule,
+  HttpModule,
   OrganizedDataModule,
   LoggerModule,
   DrizzleModule
 ],
+providers:[CronService],
 controllers:[AppController]
 })
 export class AppModule {}
