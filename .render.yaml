@@ -3,11 +3,15 @@ services:
     name: organise-simple-standalone
     env: node
     region: singapore 
+    plan: free
+    branch: main
     buildCommand: npm install && npm run build
     startCommand: node dist/src/main
     nodeVersion: 22.14.0
     healthCheckPath: /
     autoDeploy: true
+    previews:
+      generation: manual
     envVars:
       - key: NODE_ENV
         value: production
