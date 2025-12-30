@@ -11,3 +11,4 @@ export const companies = pgTable('companies', {
   createdAt: timestamp('created_at').defaultNow(),
   githubId: varchar('github_id', { length: 255 }),
 });
+
