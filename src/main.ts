@@ -19,12 +19,6 @@ import addFormats from 'ajv-formats';
 const ajvFormats = addFormats as unknown as Function;
 
 async function bootstrap() {
-   console.log('=== DEBUG INFO ===');
-  console.log('Starting from directory:', __dirname);
-  console.log('Main file location:', __filename);
-  console.log('Current working directory:', process.cwd());
-  console.log('NODE_ENV:', process.env.NODE_ENV);
-  console.log('==================');
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
