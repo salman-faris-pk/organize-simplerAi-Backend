@@ -13,6 +13,10 @@ import { ISOLogger } from './logger/iso-logger.service';
 import { registerFastifyLogger } from './logger/fastify-logger.hook';
 import './typebox-formats'
 import { ConfigService } from "@nestjs/config"
+import addFormats from 'ajv-formats';
+
+
+const ajvFormats = addFormats as unknown as Function;
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -27,9 +31,7 @@ async function bootstrap() {
           useDefaults: true,
           allErrors: true
         },
-        plugins: [
-          require('ajv-formats')
-        ]
+        plugins: [ajvFormats]
       },
     }),
     {
@@ -38,7 +40,7 @@ async function bootstrap() {
   );
   const configService = app.get(ConfigService);
   const nodeEnv = configService.get<string>('NODE_ENV');
-  const port = configService.get<string>('PORT');
+  const port = Number(configService.get('PORT')) || 3000;
 
   
   if (nodeEnv !== 'production') {
@@ -98,7 +100,7 @@ async function bootstrap() {
       };
 
              
-     await app.listen(port ?? 3000, '0.0.0.0');
+     await app.listen(port , '0.0.0.0');
 }
 bootstrap();
 
