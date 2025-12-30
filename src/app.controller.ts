@@ -9,7 +9,7 @@ import { HttpService } from '@nestjs/axios';
 @Controller()
 export class AppController {
   @Get()
-  getHello(): string {
-    return 'welcome back to organise simple app!';
+  getHealth() {
+    return { status: 'OK', timestamp: new Date().toISOString() };
   }
 }
