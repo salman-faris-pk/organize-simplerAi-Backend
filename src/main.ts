@@ -25,18 +25,18 @@ async function bootstrap() {
       logger: false,
       bodyLimit: 10 * 1024 * 1024,
       ajv: {
-        customOptions:{
+        customOptions: {
           coerceTypes: true,
-          removeAdditional: 'all',
           useDefaults: true,
-          allErrors: true
+          removeAdditional: false,
+          allErrors: false,
         },
-        plugins: [ajvFormats]
+        plugins: [ajvFormats],
       },
     }),
     {
       bufferLogs: true,
-    }
+    },
   );
   const configService = app.get(ConfigService);
   const nodeEnv = configService.get<string>('NODE_ENV');
@@ -47,7 +47,7 @@ async function bootstrap() {
     const fastify = app.getHttpAdapter().getInstance();
     const logger = await app.resolve(ISOLogger);
     registerFastifyLogger(fastify, logger);
-  }
+  };
 
   app.enableCors();
 
@@ -67,7 +67,7 @@ async function bootstrap() {
    });
 
    await app.register(compress, {
-     encodings: ['gzip', 'deflate', 'br'],
+     threshold: 1024 * 10,
    });
 
 

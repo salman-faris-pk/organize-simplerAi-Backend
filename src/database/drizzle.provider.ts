@@ -24,9 +24,6 @@ export const drizzleProvider: Provider = {
     });
 
     const db = drizzle(pool, { schema });
-    if(db){
-     console.log("database connected")
-    }
     
     setInterval(() => db.execute(`SELECT 1`), 5000);
 
