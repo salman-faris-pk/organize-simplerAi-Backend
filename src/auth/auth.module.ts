@@ -4,7 +4,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { ApiKeyAuthGuard } from './guard/apiKey-auth.guard';
 import { PassportModule } from '@nestjs/passport';
 import { ApiKeyStrategy } from './strategy/apiKey.strategy';
-// import { DrizzleService } from '../database/drizzle.service';
 
 
 @Module({
@@ -16,7 +15,6 @@ import { ApiKeyStrategy } from './strategy/apiKey.strategy';
       useClass: ApiKeyAuthGuard
     },
     ApiKeyStrategy,
-    // DrizzleService  doent need cause already globalised
   ],
   exports:[AuthService]
 })

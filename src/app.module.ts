@@ -11,6 +11,7 @@ import { AppController } from './app.controller';
 import { HttpModule } from '@nestjs/axios';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronService } from './cron.service';
+import { RedisModule } from './redis/redis.module';
 
 
 @Module({
@@ -32,7 +33,8 @@ import { CronService } from './cron.service';
   HttpModule,
   OrganizedDataModule,
   LoggerModule,
-  DrizzleModule
+  DrizzleModule,
+  RedisModule
 ],
 providers:[CronService],
 controllers:[AppController]

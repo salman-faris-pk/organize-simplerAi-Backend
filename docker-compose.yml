@@ -10,5 +10,6 @@ services:
       LOG_LEVEL: 'debug, verbose'
       PORT: 3000
       DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
     ports:
       - '3000:3000'

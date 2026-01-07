@@ -9,7 +9,7 @@ export class ISOLogger extends ConsoleLogger {
     if (this.configService.get('NODE_ENV') !== 'production') {
       this.setLogLevels(['log', 'warn', 'error', 'debug','verbose']);
     } else {
-      this.setLogLevels(['debug','log']);
+      this.setLogLevels(['debug','verbose']);
     }
   }
 
