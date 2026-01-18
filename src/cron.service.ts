@@ -26,7 +26,7 @@ export class CronService {
 }
 
 
-  @Cron('*/13 * * * *')
+  @Cron('*/14 * * * *')
   async triggerHealthCheck() {
     try {
        const response=await firstValueFrom(

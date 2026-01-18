@@ -6,7 +6,7 @@ import { Serialized } from "@langchain/core/load/serializable"
 
 
 
-export class DebugCallbcakHandler extends BaseCallbackHandler {
+export class DebugCallbackHandler extends BaseCallbackHandler {
     name = "DebugCallbackHandler"
 
 
@@ -80,7 +80,7 @@ export class DebugCallbcakHandler extends BaseCallbackHandler {
   ):Promise<void> {
         
     const startedLlmCall: LlmCall ={
-         llmName: Array.isArray(llm.id) && llm.id.length > 0 ? llm.id[llm.id.length - 1] : "unknown-llm",
+         llmName: Array.isArray(llm.id) && llm.id.length > 0 ? llm.id[llm.id.length - 1] : "anonymous-llm",
          parentRunId,
          runId,
          start: {

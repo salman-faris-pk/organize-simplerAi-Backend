@@ -122,7 +122,7 @@ export const jsonZeroShotSchemaExtractionRefine = new PromptTemplate({
   template: jsonZeroShotSchemaExtractionRefineTemplate,
 });
 
-export const jsonOneShotExtraction = new PromptTemplate({    //1 example means one input example and one output exmaple in prompt ,but few shot means one or more allowed exmaples
+export const jsonOneShotExtraction = new PromptTemplate({    //1 example means, one input example and one output exmaple in prompt ,but few shot means one or more allowed exmaples
   inputVariables: ['exampleInput', 'exampleOutput', 'context'],
   template: jsonOneShotExtractionTemplate,
 });

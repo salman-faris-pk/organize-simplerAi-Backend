@@ -2,17 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { RefineParams } from './types/types';
 import { LlmService } from '../llm/llm.service';
 import { Model } from '../llm/types/types';
-import { jsonAnalysis, jsonClassification, jsonOneShotExtraction, jsonZeroShotSchemaExtraction, jsonZeroShotSchemaExtractionRefine } from './prompts';
+import {
+  jsonAnalysis,
+  jsonClassification,
+  jsonOneShotExtraction,
+  jsonZeroShotSchemaExtraction,
+  jsonZeroShotSchemaExtractionRefine,
+} from './prompts';
 import { InvalidJsonOutputError } from './exceptions/exception';
 import { Analysis } from './schema/jsonAnalyzeResult.Schema';
 import { Classification } from './schema/jsonClassificationResult.schema';
 import { PromptTemplate } from '@langchain/core/prompts';
 
-
-
 @Injectable()
 export class JsonService {
-  
   private defaultRefineParams: RefineParams = {
     chunkSize: 2000,
     overlap: 100,
@@ -21,7 +24,7 @@ export class JsonService {
   constructor(private llmService: LlmService) {}
 
 
-
+  /** Simple schema extraction */
   async extractWithSchema(
     text: string,
     model: Model,
@@ -39,17 +42,19 @@ export class JsonService {
     );
 
     try {
-      const json: object = JSON.parse(output.text);
+      const json: object = JSON.parse(output);
 
       return {
         json,
         debugReport,
       };
-    } catch (err) {
+    } catch {
       throw new InvalidJsonOutputError();
     }
-  }
+  };
 
+
+  /** Schema extraction with refinement */
   async extractWithSchemaAndRefine(
     text: string,
     model: Model,
@@ -73,26 +78,24 @@ export class JsonService {
 
     try {
       const json: object = JSON.parse(output);
-
       return {
         json,
         refineRecap: { ...params, llmCallCount },
         debugReport,
       };
-    } catch (err) {
+    } catch {
       throw new InvalidJsonOutputError();
     }
   };
 
 
-
+  /** One-shot extraction with example */
   async extractWithExample(
     text: string,
     model: Model,
     example: { input: string; output: string },
     debug = false,
   ) {
-
     const { output, debugReport } = await this.llmService.generateOutput(
       model,
       jsonOneShotExtraction,
@@ -105,19 +108,19 @@ export class JsonService {
     );
 
     try {
-      const json: object = JSON.parse(output.content);
+      const json: object = JSON.parse(output);
 
       return {
         json,
         debugReport,
       };
-    } catch (err) {
+    } catch {
       throw new InvalidJsonOutputError();
     }
   };
 
 
-
+  /** Analyze generated JSON against schema */
   async analyzeJsonOutput(
     model: Model,
     jsonOutput: string,
@@ -152,93 +155,83 @@ export class JsonService {
     );
 
     try {
-      const json: Analysis = JSON.parse(output.content);
-
+      const json: Analysis = JSON.parse(output);
       if (
         Array.isArray(json.corrections) &&
         json.corrections.every(
-          (correction) =>
-            typeof correction.field === 'string' &&
-            typeof correction.issue === 'string' &&
-            typeof correction.description === 'string' &&
-            typeof correction.suggestion === 'string',
+          (c) =>
+            typeof c.field === 'string' &&
+            typeof c.issue === 'string' &&
+            typeof c.description === 'string' &&
+            typeof c.suggestion === 'string',
         )
       ) {
         return { json, debugReport };
       } else {
         throw new InvalidJsonOutputError();
       }
-    } catch (e) {
+    } catch {
       throw new InvalidJsonOutputError();
     }
   };
 
 
-
+  /** Text classification */
   async classifyText(
     model: Model,
     text: string,
     categories: string[],
     debug = false,
   ) {
-     
-      const outputFormat={
-         classification: 'classification of the text',
-         confidence:
-         'number representing your confidence of the classification in percentage. display only the number, not the percentage sign',
-      };
+    const outputFormat = {
+      classification: 'classification of the text',
+      confidence:
+        'number representing your confidence of the classification in percentage. display only the number, not the percentage sign',
+    };
 
-      const { output, debugReport }=await this.llmService.generateOutput(
-        model,
-        jsonClassification,
-        {
-            categories,
-            text,
-            outputFormat: JSON.stringify(outputFormat)
-        },
-        debug
-      );
+    const { output, debugReport } = await this.llmService.generateOutput(
+      model,
+      jsonClassification,
+      {
+        categories,
+        text,
+        outputFormat: JSON.stringify(outputFormat),
+      },
+      debug,
+    );
 
-      try {
-          const json: Classification= JSON.parse(output.content);
+    try {
+      const json: Classification = JSON.parse(output);
 
-          if(json.classification && json.confidence){
-
-            return { 
-              json,
-              debugReport 
-            };
-
-          }else{
-            throw new InvalidJsonOutputError();
-          };
-
-      } catch (err) {
+      if (json.classification && json.confidence) {
+        return {
+          json,
+          debugReport,
+        };
+      } else {
         throw new InvalidJsonOutputError();
       }
+    } catch {
+      throw new InvalidJsonOutputError();
+    }
   };
 
 
+  /** Generic prompt handler */
+  async handleGenericPrompt(model: Model, prompt: string, debug = false) {
+    const { output, debugReport } = await this.llmService.generateOutput(
+      model,
+      new PromptTemplate({
+        inputVariables: ['prompt'],
+        template: '{prompt}',
+      }),
+      {
+        prompt,
+      },
+      debug,
+    );
 
-  async handleGenericPrompt(model: Model,prompt: string,debug = false){
-
-     const { output,debugReport}= await this.llmService.generateOutput(
-        model,
-        new PromptTemplate({
-            inputVariables: ['prompt'],
-            template: '{prompt}',
-        }),
-        {
-            prompt
-        },
-        debug
-     );
-
-     const json ={
-        output: output.content
-     };
-
-     return {json, debugReport};
-
+    return { json: { output }, debugReport };
   };
-};
+  
+}

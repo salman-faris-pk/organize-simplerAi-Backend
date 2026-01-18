@@ -1,204 +1,200 @@
 import { Injectable } from '@nestjs/common';
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 import { Model } from './types/types';
-import { BaseLanguageModel } from '@langchain/core/language_models/base';
-import { LLMApiKeyInvalidError, LLMApiKeyMissingError, LLMBadRequestReceivedError, LLMNotAvailableError, PromptTemplateFormateError, RefinePromptInputVaribalesError, RefineReservedChainValuesError } from './exceptions/exceptions';
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import {
+  LLMApiKeyInvalidError,
+  LLMApiKeyMissingError,
+  LLMBadRequestReceivedError,
+  RefineReservedChainValuesError,
+  LLMNotAvailableError,
+  PromptTemplateFormatError,
+  RefinePromptInputVaribalesError,
+} from './exceptions/exceptions';
+import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { PromptTemplate } from '@langchain/core/prompts';
-import { ChainValues } from '@langchain/core/utils/types';
-import { DebugCallbcakHandler } from './callbackHandlers/debugHandler';
-import { Runnable } from '@langchain/core/runnables';
+import { DebugCallbackHandler } from './callbackHandlers/debugHandler';
+import { RunnableSequence } from '@langchain/core/runnables';
 import { Document } from '@langchain/core/documents';
 import { RefineCallbackHandler } from './callbackHandlers/refineHandler';
+import { ChatOpenAI } from '@langchain/openai';
+import { StringOutputParser } from '@langchain/core/output_parsers';
+import { BaseCallbackHandler } from '@langchain/core/callbacks/base';
 
 
 @Injectable()
 export class LlmService {
 
-
-async generateOutput(
+  async generateOutput(
     model: Model,
-    promptTemplate: PromptTemplate,
-    chainValues: ChainValues,
-    debug: boolean
-){
-  const llm= this.retrieveAvailableModel(model);
+    prompt: PromptTemplate,
+    input: Record<string, any>,
+    debug: boolean,
+  ) {
+    const llm = this.createLLM(model);
 
-  try {
-      await promptTemplate.format(chainValues) // like context..
-   } catch (err) {
-      throw new PromptTemplateFormateError()
+    try {
+      await prompt.format(input);
+    } catch {
+      throw new PromptTemplateFormatError();
+    }
+
+    const chain = RunnableSequence.from([
+      prompt,
+      llm,
+      new StringOutputParser(),
+    ]);
+
+    const debugHandler = debug ? new DebugCallbackHandler() : null;
+
+    try {
+      const output = await chain.invoke(input, {
+        callbacks: debugHandler ? [debugHandler] : [],
+      });
+
+      return {
+        output,
+        debugReport: debug ? debugHandler?.debugReport : null,
+      };
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        throw new LLMApiKeyInvalidError(model.name);
+      }
+      if (err?.response?.status === 400) {
+        throw new LLMBadRequestReceivedError(model.name);
+      }
+      throw err;
+    }
   }
 
-      const llmchain: Runnable<ChainValues, any> = promptTemplate.pipe(llm);
+  async splitDocument(
+    text: string,
+    params: { chunkSize: number; overlap: number },
+  ): Promise<Document[]> {
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: params.chunkSize,
+      chunkOverlap: params.overlap,
+    });
 
-    try {
-
-        const handler=new DebugCallbcakHandler();
-        const output= await llmchain.invoke(chainValues, { callbacks: debug ? [handler] : [] });
-
-        return {
-          output,
-          debugReport: debug ? handler.debugReport : null
-        };
-        
-    } catch (err) {
-        if(err?.response?.status === 401){
-           throw new LLMApiKeyInvalidError(model.name);
-        }
-        if(err?.response?.status === 400){
-            throw new LLMBadRequestReceivedError(model.name);
-        }
-        throw err;
-    }          
-};        
+    return splitter.createDocuments([text]);
+  };
 
 
-async splitDocument(
-      document: string,
-      params: { chunkSize: number; overlap: number}  
- ){
-      const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: params?.chunkSize,
-        chunkOverlap: params?.overlap
-      });
-      
-      const output= await splitter.createDocuments([document])
-
-      return output;
- };
-
-
-
- async generateRefineOutput(
+  async generateRefineOutput(
     model: Model,
-    initialPromptTemplate: PromptTemplate,
-    refinePromptTemplate: PromptTemplate,
-    chainValues: ChainValues & { input_documents: Document[]},
-    debug: boolean = false
- ) {
-
-    const llm= this.retrieveAvailableModel(model);
-
-    if(chainValues['context'] || chainValues['existing_answer']){
-       throw new RefineReservedChainValuesError('context or existing_answer')
-    };
-
-    this.throwErrorIfInputVariableMissing(
-        'initialPromptTemplate',
-        'context',
-        initialPromptTemplate.inputVariables
-    );
-
-    this.throwErrorIfInputVariableMissing(
-        'refinePromptTemplate',
-        'context',
-        refinePromptTemplate.inputVariables
-    );
-
-    this.throwErrorIfInputVariableMissing(
-        'refinePromptTemplate',
-        'existing_answer',
-        refinePromptTemplate.inputVariables
-    );
-
-    const documents = chainValues.input_documents;
-   
-    const debugHandler = new DebugCallbcakHandler();
-    const refineHandler = new RefineCallbackHandler();
-    const callbacks= debug ? [refineHandler, debugHandler] : [refineHandler];
-
-    if (documents.length === 0) {
-        return {
-            output: '',
-            llmCallCount: refineHandler.llmCallCount,
-            debugReport: debug ? debugHandler.debugReport : null,
-        };
-    };
+    initialPrompt: PromptTemplate,
+    refinePrompt: PromptTemplate,
+    input: {
+      input_documents: Document[];
+      [key: string]: any;
+    },
+    debug:boolean=false,
+  ) {
+    const llm = this.createLLM(model);
 
     try {
+      if ('context' in input || 'existing_answer' in input) {
+        throw new RefineReservedChainValuesError('context or existing_answer');
+      }
 
-    let answer: string | undefined;
+      try {
+        await initialPrompt.format({ context: '' });
+      } catch {
+        throw new RefinePromptInputVaribalesError('initialPrompt', 'context');
+      }
 
-        for(const doc of documents){
-            if(!answer){    //it check answer is undefine or empty in first iteration then ...
-                const chain= initialPromptTemplate.pipe(llm);
+      try {
+        await refinePrompt.format({
+          context: '',
+          existing_answer: '',
+        });
+      } catch {
+        throw new RefinePromptInputVaribalesError(
+          'refinePrompt',
+          'context or existing_answer',
+        );
+      }
 
-                answer= await chain.invoke(
-                    { context: doc.pageContent },
-                    { callbacks }
-                );
-            }else{    // this works only if there is answer is there and refine ..
-               const  refineChain = refinePromptTemplate.pipe(llm);
+      const outputParser = new StringOutputParser();
 
-               answer = await refineChain.invoke(
-                 {
-                   context: doc.pageContent,
-                   existing_answer: answer,
-                 },
-                 { callbacks },
-               );
-            }
-        };
+      const initialChain = RunnableSequence.from([
+        initialPrompt,
+        llm,
+        outputParser,
+      ]);
 
+      const refineChain = RunnableSequence.from([
+        refinePrompt,
+        llm,
+        outputParser,
+      ]);
+
+      const refineHandler = new RefineCallbackHandler();
+      const callbacks: BaseCallbackHandler[] = [refineHandler];
+
+      let debugHandler: DebugCallbackHandler | undefined;
+
+      if (debug) {
+        debugHandler = new DebugCallbackHandler();
+        callbacks.push(debugHandler);
+      }
+
+      const documents = input.input_documents ?? [];
+
+      if (documents.length === 0) {
         return {
-            output: answer || '',
-            llmCallCount: refineHandler.llmCallCount,
-            debugReport: debug ? debugHandler.debugReport : null,
-        }
-        
-    } catch (err) {
-        if (err?.response?.status === 401) {
-          throw new LLMApiKeyInvalidError(model.name);
+          output: '',
+          llmCallCount: refineHandler.llmCallCount,
+          debugReport: debugHandler?.debugReport ?? null,
         };
+      }
 
-        if (err?.response?.status === 400) {
-        throw new LLMBadRequestReceivedError(model.name);
-        };
+      let existingAnswer = '';
 
-        throw err;
-    }
- };
+      for (const doc of documents) {
+        const chain = existingAnswer ? refineChain : initialChain;
 
- 
+        existingAnswer = await chain.invoke(
+          {
+            ...input,
+            context: doc.pageContent,
+            existing_answer: existingAnswer,
+          },
+          { callbacks },
+        );
+      }
 
- private throwErrorIfInputVariableMissing(
-   templateName: string,
-   variableName: string,
-   inputVariable: string[]  
-  ){
-      if(!inputVariable.includes(variableName)){
-           throw new RefinePromptInputVaribalesError(templateName, variableName)
+      return {
+        output: existingAnswer,
+        llmCallCount: refineHandler.llmCallCount,
+        debugReport: debugHandler?.debugReport ?? null,
       };
- };       
-   
+    } catch (err) {
+      if (err?.response?.status === 401) {
+        throw new LLMApiKeyInvalidError(model.name);
+      }
+      if (err?.response?.status === 400) {
+        throw new LLMBadRequestReceivedError(model.name);
+      }
+      throw err;
+    }
+  };
 
 
- private retrieveAvailableModel(model: Model): BaseLanguageModel {
-     switch(model.name) {
-        case 'gemini-2.0-flash-lite':
-        case 'gemini-2.5-flash':    
-        case 'gemini-2.5-flash-lite': {
-            if(!model.apiKey){
-                 throw new LLMApiKeyMissingError(model.name)
-            };
+  private createLLM(model: Model): ChatOpenAI {
+    if (!model.apiKey) {
+      throw new LLMApiKeyMissingError(model.name);
+    }
 
-            const llm = new ChatGoogleGenerativeAI({
-               cache: true,
-               maxConcurrency: 10,
-               maxRetries: 3,
-               model: model.name,
-               apiKey: model.apiKey,
-               temperature: 0
-            });
-
-            return llm;
-        }
-        default:{
-                throw new LLMNotAvailableError(model.name)
-        }
-     }
- } 
-
-};
-  
+    switch (model.name) {
+      case 'gpt-5-mini':
+      case 'gpt-4.1-nano':
+        return new ChatOpenAI({
+          model: model.name,
+          apiKey: model.apiKey,
+          temperature: 0,
+          maxRetries: 3,
+        });
+      default:
+        throw new LLMNotAvailableError(model.name);
+    }
+  }
+}

@@ -1,26 +1,32 @@
+export class LLMApiKeyMissingError extends Error {
+  constructor(model: string) {
+    super(`Missing API key for model: ${model}`);
+  }
+}
+
+export class LLMApiKeyInvalidError extends Error {
+  constructor(model: string) {
+    super(`Invalid API key for model: ${model}`);
+  }
+}
+
+export class LLMBadRequestReceivedError extends Error {
+  constructor(model: string) {
+    super(`Bad request sent to model: ${model}`);
+  }
+}
 
 export class LLMNotAvailableError extends Error {
-  constructor(model = '') {
-    super(`Model ${model} is not available.`);
+  constructor(model: string) {
+    super(`Model not available: ${model}`);
   }
-};
+}
 
-
-export class PromptTemplateFormateError extends Error {
+export class PromptTemplateFormatError extends Error {
   constructor() {
-    super(`Prompt template could not be formatted with provided chain values.`);
+    super('Prompt template does not match input variables');
   }
-};
-
-
-export class RefinePromptInputVaribalesError extends Error{
-    constructor(promptTemplate: string, missingInputVariables: string){
-         super(
-            `${promptTemplate} is missing mandatory input variable: ${missingInputVariables}`
-         )
-    }
-};
-
+}
 
 export class RefineReservedChainValuesError extends Error {
   constructor(value: string) {
@@ -28,24 +34,10 @@ export class RefineReservedChainValuesError extends Error {
   }
 };
 
-
-export class LLMApiKeyMissingError extends Error {
-  constructor(model = '') {
-    super(`API key for model ${model} is missing.`);
-  }
-};
-
-export class LLMApiKeyInvalidError extends Error {
-  constructor(model = '') {
-    super(`API key for model ${model} is invalid.`);
-  }
-};
-
-
-export class LLMBadRequestReceivedError extends Error {
-  constructor(model = '') {
-    super(
-      `Bad Request for model ${model}, the input may be too long for the context window of the model.`,
-    );
-  }
+export class RefinePromptInputVaribalesError extends Error{
+    constructor(promptTemplate: string, missingInputVariables: string){
+         super(
+            `${promptTemplate} is missing mandatory input variable: ${missingInputVariables}`
+         )
+    }
 };
