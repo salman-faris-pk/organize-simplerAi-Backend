@@ -1,4 +1,7 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false
+  },
   "exclude": ["drizzle.config.ts","node_modules", "test", "dist", "**/*spec.ts","src/database/migrations"]
 }
